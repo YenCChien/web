@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+<script>
+{% block jquery %}
+var endpoint = '/api/chart/data/'
+var defaultData = []
+var offset = []
+var measure = []
+var report = []
+var labels = []
+var tablelist = []
+var dbtable = ""
+$.ajax({
+    method: "GET",
+    url: endpoint,
+    success: function(data){
+        labels = data.labels
+        defaultData = data.default
+		tablelist = data.tables
+		dbtable = data.table
+		columns = data.columns
+		db = data.db
+        setChart()
+    },
+    error: function(error_data){
+        console.log("error")
+        console.log(error_data)
+    }
+})
+
+function setChart(){
+	var myDiv = document.getElementById("myDiv");
+	var selectList = document.createElement("select");
+	selectList.setAttribute("onchange", "form.submit()");
+	selectList.setAttribute("id", "myTable");
+	selectList.setAttribute("name", "myTable");
+	myDiv.appendChild(selectList);
+	for (var i = 0; i < tablelist.length; i++) {
+		var option = document.createElement("option");
+		option.setAttribute("value", tablelist[i]);
+		option.text = tablelist[i];
+		selectList.appendChild(option);
+	}
+	$('#myTable').val(dbtable)
+	document.getElementById("model").innerHTML = db
+    var ctx = document.getElementById("myChart");
+    var ctx2 = document.getElementById("myChart2");
+	var getDatas = []
+	
+	for (var i = 0; i < columns.length; i++){
+		getDatas[i] = []
+		for (var j = 0; j < labels.length; j++){ 
+			getDatas[i].push(defaultData[j][i])
+		}
+	}
+	
+    var myChart = new Chart(ctx2, {
+    type: 'line',
+    data: {
+        labels: labels,
+        /*datasets: [{
+            label: 'DELTA',
+            data: offset,
+            backgroundColor: '#FF0000',
+            borderColor: [
+                'rgba(255,99,132,1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+			fill: false,
+			borderDash: [5, 5],
+            borderWidth: 2,
+        },{
+            label: 'MEASURE',
+            data: measure,
+            backgroundColor: '#8B4513',
+            borderColor: '#D2691E',
+			fill: false,
+            borderWidth: 2
+        },{
+            label: 'REPORT',
+            data: report,
+            backgroundColor: '#00FF00',
+            borderColor: '#66FF66',
+			fill: false,
+            borderWidth: 2
+        }]*/
+    },
+    options: {
+		legend: {
+			display: true
+		},
+		title: {
+            display: true,
+            text: dbtable,
+        },
+		tooltips: {
+			enable: false,
+			mode: 'index',
+			position: 'nearest',
+		},
+		scales: {
+			xAxes: [{
+				scaleLabel: {
+					display: true,
+					labelString: 'Frequency(Hz)'
+				}
+			}],
+            yAxes: [{
+                ticks: {id: 'y-axis-1', type: 'linear', position: 'left', ticks: { min: 0, max: 50 , }},
+				display: true,
+				scaleLabel: {
+					display: true,
+					labelString: 'Amp.(dBmV)'
+				}
+            }],
+			pointLabels :{
+				fontStyle: 'italic',
+			},
+        }
+    }
+});
+
+console.log(columns)
+
+for (var i = 1; i < columns.length; i++){
+	var color = 'rgba('+(Math.floor(Math.random() * 255) + 1)+','+(Math.floor(Math.random() * 255) + 1)+','+(Math.floor(Math.random() * 255) + 1)+','+'1)'
+	myChart.data.datasets.push({
+		label: columns[i],
+		backgroundColor: color,
+		borderColor: color,
+		data: getDatas[i],
+		fill: false,
+		borderWidth: 2,
+	});
+}
+myChart.update();
+    <!-- var myChart = new Chart(ctx, { -->
+    <!-- type: 'pie', -->
+    <!-- data: { -->
+        <!-- labels: labels, -->
+        <!-- datasets: [{ -->
+            <!-- label: '# of Votes', -->
+            <!-- data: defaultData, -->
+            <!-- backgroundColor: [ -->
+                <!-- 'rgba(255, 99, 132, 0.2)', -->
+                <!-- 'rgba(54, 162, 235, 0.2)', -->
+                <!-- 'rgba(255, 206, 86, 0.2)', -->
+                <!-- 'rgba(75, 192, 192, 0.2)', -->
+                <!-- 'rgba(153, 102, 255, 0.2)', -->
+                <!-- 'rgba(255, 159, 64, 0.2)' -->
+            <!-- ], -->
+            <!-- borderColor: [ -->
+                <!-- 'rgba(255,99,132,1)', -->
+                <!-- 'rgba(54, 162, 235, 1)', -->
+                <!-- 'rgba(255, 206, 86, 1)', -->
+                <!-- 'rgba(75, 192, 192, 1)', -->
+                <!-- 'rgba(153, 102, 255, 1)', -->
+                <!-- 'rgba(255, 159, 64, 1)' -->
+            <!-- ], -->
+            <!-- borderWidth: 1 -->
+        <!-- }] -->
+    <!-- }, -->
+    <!-- options: {} -->
+<!-- }); -->
+
+//Build an array containing Customer records.
+<!-- columns.push(['Test Result']) -->
+var customers = new Array();
+customers.push(columns);
+for (var i = 0; i < defaultData.length; i++){
+	/*if (defaultData[i].slice(-1) <= 2 && defaultData[i].slice(-1) >= -2) {
+		defaultData[i].push(['PASS'])
+	} else {
+		defaultData[i].push(['FAIL'])
+	}*/
+	customers.push(defaultData[i])
+}
+
+//Create a HTML Table element.
+var table = document.createElement("TABLE");
+table.border = "1";
+table.width = "100%"
+table.bordercolor = "7c74b0";
+table.style = "background-color:#f3F0F0;text-align:center";
+table.cellpadding="1";
+table.cellspacing="0";
+//Get the count of columns.
+var columnCount = customers[0].length;
+
+//Add the header row.
+var row = table.insertRow(-1);
+for (var i = 0; i < columnCount; i++) {
+    var headerCell = document.createElement("TH");
+    headerCell.innerHTML = customers[0][i];
+    row.appendChild(headerCell);
+}
+
+//Add the data rows.
+for (var i = 1; i < customers.length; i++) {
+    row = table.insertRow(-1);
+    for (var j = 0; j < columnCount; j++) {
+        var cell = row.insertCell(-1);
+        cell.innerHTML = customers[i][j];
+    }
+}
+
+var dvTable = document.getElementById("dvTable");
+dvTable.innerHTML = "";
+dvTable.appendChild(table);
+
+}
+
+// var ctx = document.getElementById("myChart");
+{% endblock %}
+
+</script>
+
+{% block content %}
+
+<div class='row'>
+    <div class='col-sm-12' url-endpoint='{% url "api-data" %}'>
+        <h1 id='model'></h1>
+        <!-- <div class='col-sm-12'> -->
+            <!-- <canvas id="myChart" width="400" height="150"></canvas> -->
+        <!-- </div> -->
+		<form action="" method="get">
+		<div class="myDiv" id="myDiv"><b>Table: </b></div>
+		<br/><b>________________________________________________________________________________________________________________________________________________ </b><br/><br/>
+        <div class='col-sm-12'>
+            <canvas id="myChart2" width="400" height="150"></canvas>
+			<br/><br/><b>TEST SUMMARY </b><br/><br/>
+        </div>
+		</form>
+    </div>
+</div>
+
+<style>
+div div div select {
+	width: 250px;
+	height: 26px;
+	overflow: hidden;
+	background: #ddd;
+	border: 1px solid #ccc;
+   }
+#dvTable {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#dvTable td, #dvTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#dvTable tr:nth-child(even){background-color: #f2f2f2;}
+
+#dvTable tr:hover {background-color: #ddd;}
+
+#dvTable th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
+</style>
+
+<center>
+<div id="dvTable"></div>
+</center>
+<div><br/><br/><button onclick="gohome()">Go Back</button><br/><br/></div>
+
+<script>
+function gohome()
+{
+window.location.href="/"
+}
+</script>
+{% endblock content %}
+
+

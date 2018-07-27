@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+<script>
+{% block jquery %}
+
+var endpoint = '/api/chart/data/'
+var defaultData = []
+var labels = [];
+var tablelist = [];
+var dbfiles = [];
+var background = [];
+var borderColor = [];
+$.ajax({
+    method: "GET",
+    url: endpoint,
+    success: function(data){
+        labels = data.labels
+        defaultData = data.default
+		tablelist = data.tables
+		dbfiles = data.dbfiles
+		num = data.num
+        setSelect()
+    },
+    error: function(error_data){
+        console.log("error")
+        console.log(error_data)
+    }
+})
+            
+function setSelect(){
+    /*console.log(dbfiles.length)
+    console.log('rgba('+(Math.floor(Math.random() * 255) + 1)+','+(Math.floor(Math.random() * 255) + 1)+','+(Math.floor(Math.random() * 255) + 1)+','+'0.2)')
+	console.log(tablelist)
+	console.log(dbfiles)*/
+	var myDiv = document.getElementById("myDiv");
+	var selectList = document.getElementById("mySelect");
+	selectList.setAttribute("onchange", "form.submit()");
+	selectList.setAttribute("id", "mySelect");
+	selectList.setAttribute("name", "mySelect");
+	myDiv.appendChild(selectList);
+	for (var i = 0; i < dbfiles.length; i++) {
+		var option = document.createElement("option");
+		option.setAttribute("value", dbfiles[i]);
+		option.text = dbfiles[i];
+		selectList.appendChild(option);
+        var color = 'rgba('+(Math.floor(Math.random() * 255) + 1)+','+(Math.floor(Math.random() * 255) + 1)+','+(Math.floor(Math.random() * 255) + 1)+','
+        background.push(color+'0.8)');
+        borderColor.push(color+'1)');
+	}
+    console.log(background)
+	var ctx = document.getElementById("myChart");
+	var myChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: dbfiles,
+        datasets: [{
+            label: '# of Votes',
+            data: num,
+            backgroundColor: background,
+            borderWidth: 2
+        }]
+    },
+    options: {
+		title: {
+            display: true,
+            text: 'DB Files'
+        },
+	}
+})
+$(document).ready(
+  function() {
+    var canvas = document.getElementById("myChart");
+    canvas.onclick = function(evt) {
+      var activePoints = myChart.getElementsAtEvent(evt);
+      if (activePoints[0]) {
+        var chartData = activePoints[0]['_chart'].config.data;
+        var idx = activePoints[0]['_index'];
+        var label = chartData.labels[idx];
+        var value = chartData.datasets[0].data[idx];
+		window.location.href="/api/chart/?mySelect=" + label
+        <!-- console.log(url); -->
+        <!-- alert(url); -->
+      }
+    };
+  }
+);
+}
+// var ctx = document.getElementById("myChart");
+{% endblock %}
+</script>
+
+{% block content %}
+
+<div class='col-sm-12' url-endpoint='{% url "api-data" %}'>
+    <h1>Home</h1>
+	<form action="api/chart/" method="get">
+	<div id="myDiv"><b>File Name: </b></div>
+	<div class="styled-select">
+		<select id="mySelect">
+			<option value="Choose db file">Choose db file</option>
+		</select>
+	</div>
+	<style>
+	div div div select {
+		width: 200px;
+		height: 26px;
+		overflow: hidden;
+		background: #ddd;
+		border: 1px solid #ccc;
+   }
+	</style>
+	<div class='col-sm-12'>
+        <canvas id="myChart" width="300" height="150"></canvas>
+    </div>
+	</form>
+</div>
+{% endblock content %}
+
+
