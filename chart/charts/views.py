@@ -4,10 +4,10 @@ from django.shortcuts import render
 from django.views.generic import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from . import SQLite
+from charts import SQLite
 from os import listdir
 from os.path import isfile, join
-import json
+import json, os
 table,db = "",""
 # print('-----{}'format(os.getcwd()))
 User = get_user_model()
@@ -44,11 +44,11 @@ class ChartData(APIView):
     def get(self, request, format=None):
         global table, db
         tablenum = []
-        mypath = 'C:/Users/nick/chart/sqlite'
+        mypath = os.getcwd()+'/sqlite'
         dbfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
         for f in dbfiles:
             getlist = []
-            a = SQLite.SQLite('C:/Users/nick/chart/sqlite/{}'.format(f))
+            a = SQLite.SQLite(os.getcwd()+'/sqlite/{}'.format(f))
             a.connect()
             a.cursor()
             gettables = a.table()
@@ -62,7 +62,7 @@ class ChartData(APIView):
         tablelist = []
         columnlist = []
         if db:
-            sql = SQLite.SQLite('C:/Users/nick/chart/sqlite/{}'.format(db))
+            sql = SQLite.SQLite(os.getcwd()+'/sqlite/{}'.format(db))
             sql.connect()
             sql.cursor()
             alltable = sql.table()
